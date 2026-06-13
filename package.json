@@ -1,0 +1,14 @@
+{
+  "name": "cortex-prime-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Cortex Prime TTRPG character sheets and rolling dice",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.26.4",
+    "dotenv": "^16.4.5"
+  }
+}
