@@ -133,6 +133,36 @@ function formatRollEmbed(evaluation) {
   return out;
 }
 
+/**
+ * Parse a dice string into individual die sizes.
+ * Accepts counted notation ("2d6 1d8"), plain ("d6 d6 d8"), or mixed.
+ * Commas are optional separators.
+ * Returns { valid: string[], invalid: string[] }
+ */
+function parseDiceList(input) {
+  const parts   = input.split(/[\s,]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
+  const valid   = [];
+  const invalid = [];
+
+  for (const p of parts) {
+    const counted = p.match(/^(\d+)(d\d+)$/);
+    if (counted) {
+      const count = parseInt(counted[1], 10);
+      const die   = counted[2];
+      if (VALID_DICE.includes(die)) {
+        for (let i = 0; i < count; i++) valid.push(die);
+      } else {
+        invalid.push(p);
+      }
+      continue;
+    }
+    if (VALID_DICE.includes(p)) valid.push(p);
+    else invalid.push(p);
+  }
+
+  return { valid, invalid };
+}
+
 module.exports = {
   VALID_DICE,
   DIE_EMOJI,
@@ -142,5 +172,6 @@ module.exports = {
   rollDie,
   rollPool,
   evaluatePool,
-  formatRollEmbed
+  formatRollEmbed,
+  parseDiceList
 };

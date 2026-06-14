@@ -22,7 +22,7 @@ const {
   MessageFlags
 } = require('discord.js');
 const { getCampaignId, getScene, saveScene, clearScene } = require('../utils/storage');
-const { VALID_DICE, DIE_EMOJI } = require('../utils/dice');
+const { VALID_DICE, DIE_EMOJI, parseDiceList } = require('../utils/dice');
 
 const DIE_CHOICES = VALID_DICE.map(d => ({ name: d, value: d }));
 
@@ -150,7 +150,7 @@ async function handleView(interaction) {
   const traits     = scene?.data?.traits ?? {};
 
   const embed = new EmbedBuilder()
-    .setTitle('🌐 Active Scene Traits')
+    .setTitle('🎬 Active Scene Traits')
     .setColor(0xFEE75C);
 
   const entries = Object.entries(traits);
@@ -318,22 +318,12 @@ async function handlePoolRemove(interaction) {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function parseDiceList(input) {
-  const parts = input.split(/[\s,]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
-  const valid = [], invalid = [];
-  for (const p of parts) {
-    if (VALID_DICE.includes(p)) valid.push(p);
-    else invalid.push(p);
-  }
-  return { valid, invalid };
-}
-
 function formatTrait(name, value) {
   if (Array.isArray(value)) {
     const dice = value.length > 0
       ? value.map(d => `${DIE_EMOJI[d] ?? ''}${d}`).join(' ')
       : '*empty*';
-    return `**${name}** 🟡 [${dice}]`;
+    return `**${name}** 💾 [${dice}]`;
   }
   return `**${name}** ${DIE_EMOJI[value] ?? ''}${value}`;
 }

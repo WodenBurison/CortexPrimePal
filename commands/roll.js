@@ -10,11 +10,11 @@
  *     Toggle buttons for each die in the pool → "Roll Selected" button
  *
  *   Phase 2 (select) — always shown after the main roll:
- *     Each die cycles: ◽ Unused → ✅ Total → 🔷 Effect → ◽ Unused
+ *     Each die cycles: ◽ Unused → ✅ Total → ⚙️ Effect → ◽ Unused
  *     Resource dice (raw or from pool) toggle on/off in a separate row.
  *     Confirm button finalises the roll.
  *
- * Trait lookup: character sheet → scene traits (🌐)
+ * Trait lookup: character sheet → scene traits (🎬)
  */
 
 const {
@@ -26,7 +26,7 @@ const {
   MessageFlags
 } = require('discord.js');
 const { getCampaignId, getSheet, getAllSheets, getScene, getCampaignData } = require('../utils/storage');
-const { DIE_EMOJI, isValidDie, normalizeDie, rollPool } = require('../utils/dice');
+const { DIE_EMOJI, isValidDie, normalizeDie, rollPool, parseDiceList } = require('../utils/dice');
 
 // ---------------------------------------------------------------------------
 // In-memory roll state  (5-minute TTL)
@@ -137,10 +137,10 @@ module.exports = {
     const notFound  = [];
 
     for (const req of requestedTraits) {
-      // Raw die notation always works regardless of character
-      const die = normalizeDie(req);
-      if (isValidDie(die)) {
-        mainPool.push({ traitSet: 'Free', traitName: die, die });
+      // Raw die notation — supports plain "d6" and counted "2d6"
+      const { valid: freeDice } = parseDiceList(req);
+      if (freeDice.length > 0) {
+        for (const die of freeDice) mainPool.push({ traitSet: 'Free', traitName: die, die });
         continue;
       }
 
@@ -459,20 +459,20 @@ function buildSelectionMessage(rollId, state, user) {
     parts.push(`✅ **${totalDice.length}** kept for total (${mainTotal}${resNote})`);
   }
   if (effectDice.length > 0) {
-    parts.push(`🔷 **${effectDice.length}** effect ${effectDice.length === 1 ? 'die' : 'dice'}: ${effectDice.map(r => r.die).join(', ')}`);
+    parts.push(`⚙️ **${effectDice.length}** effect ${effectDice.length === 1 ? 'die' : 'dice'}: ${effectDice.map(r => r.die).join(', ')}`);
   }
 
   const instructions =
-    '🖱️ **Click once** → add to total ✅ | **Click again** → set as effect 🔷 | **Click again** → unselect\n' +
+    '🖱️ **Click once** → add to total ✅ | **Click again** → set as effect ⚙️ | **Click again** → unselect\n' +
     (parts.length > 0 ? parts.join('  |  ') : '*No dice selected yet.*');
 
   const resultLines = results.map((r, i) => {
     const s      = dieStates[i];
     const dieTag = `${DIE_EMOJI[r.die] ?? ''}${r.die}`;
-    const setTag = r.traitSet === 'Scene' ? ' 🌐' : r.traitSet === 'Campaign' ? ' 🏴' : '';
+    const setTag = r.traitSet === 'Scene' ? ' 🎬' : r.traitSet === 'Campaign' ? ' 📚' : '';
     if (r.result === 1 && s === 0) return `💀 ~~1~~ — ${r.traitName}${setTag} (${dieTag})`;
     if (s === 1) return `✅ **${r.result}** — ${r.traitName}${setTag} (${dieTag})`;
-    if (s === 2) return `🔷 **${r.result}** — ${r.traitName}${setTag} (${dieTag})`;
+    if (s === 2) return `⚙️ **${r.result}** — ${r.traitName}${setTag} (${dieTag})`;
     return `◽ ${r.result} — ${r.traitName}${setTag} (${dieTag})`;
   });
 
@@ -490,7 +490,7 @@ function buildSelectionMessage(rollId, state, user) {
         ? `➕ **${r.result}** — ${r.traitName} (${dieTag}) ← adding to total`
         : `◽ ${r.result} — ${r.traitName} (${dieTag})`;
     });
-    embed.addFields({ name: '🟡 Resource / Hero Dice', value: resLines.join('\n') });
+    embed.addFields({ name: '💾 Resource / Hero Dice', value: resLines.join('\n') });
   }
 
   if (notFound.length > 0) {
@@ -507,7 +507,7 @@ function buildSelectionMessage(rollId, state, user) {
     let style     = isHitch ? ButtonStyle.Danger : ButtonStyle.Secondary;
     let label     = `${r.result} (${r.die})`;
     if (s === 1) { style = ButtonStyle.Success; label = `✅ ${r.result} (${r.die})`; }
-    if (s === 2) { style = ButtonStyle.Primary;  label = `🔷 ${r.result} (${r.die})`; }
+    if (s === 2) { style = ButtonStyle.Primary;  label = `⚙️ ${r.result} (${r.die})`; }
 
     return new ButtonBuilder()
       .setCustomId(`roll_die:${rollId}:${i}`)
@@ -562,10 +562,10 @@ function buildFinalEmbed(state, user) {
   const resultLines = results.map((r, i) => {
     const s      = dieStates[i];
     const dieTag = `${DIE_EMOJI[r.die] ?? ''}${r.die}`;
-    const setTag = r.traitSet === 'Scene' ? ' 🌐' : r.traitSet === 'Campaign' ? ' 🏴' : '';
+    const setTag = r.traitSet === 'Scene' ? ' 🎬' : r.traitSet === 'Campaign' ? ' 📚' : '';
     if (r.result === 1 && s === 0) return `💀 ~~1~~ — ${r.traitName}${setTag} (${dieTag})`;
     if (s === 1) return `✅ **${r.result}** — ${r.traitName}${setTag} (${dieTag}) ← total`;
-    if (s === 2) return `🔷 **${r.result}** — ${r.traitName}${setTag} (${dieTag}) ← effect`;
+    if (s === 2) return `⚙️ **${r.result}** — ${r.traitName}${setTag} (${dieTag}) ← effect`;
     return `◽ ${r.result} — ${r.traitName}${setTag} (${dieTag})`;
   });
 
@@ -583,7 +583,7 @@ function buildFinalEmbed(state, user) {
         ? `➕ **${r.result}** — ${r.traitName} (${dieTag}) ← added to total`
         : `◽ ${r.result} — ${r.traitName} (${dieTag})`;
     });
-    embed.addFields({ name: '🟡 Resource / Hero Dice', value: resLines.join('\n') });
+    embed.addFields({ name: '💾 Resource / Hero Dice', value: resLines.join('\n') });
   }
 
   const totalLabel = resBonus > 0
@@ -592,7 +592,7 @@ function buildFinalEmbed(state, user) {
   embed.addFields({ name: 'Total', value: totalLabel, inline: true });
 
   const effectLabel = effectDice.length > 0
-    ? effectDice.map(r => `🔷 **${r.die}** *(${r.traitName})*`).join('\n')
+    ? effectDice.map(r => `⚙️ **${r.die}** *(${r.traitName})*`).join('\n')
     : '*none selected*';
   embed.addFields({
     name: `Effect ${effectDice.length === 1 ? 'Die' : 'Dice'}`,

@@ -29,7 +29,7 @@ const {
   updateSheet,
   deleteSheet
 } = require('../utils/storage');
-const { VALID_DICE, DIE_EMOJI } = require('../utils/dice');
+const { VALID_DICE, DIE_EMOJI, parseDiceList } = require('../utils/dice');
 
 const DIE_CHOICES = VALID_DICE.map(d => ({ name: d, value: d }));
 
@@ -514,28 +514,12 @@ async function handleList(interaction) {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Parse a space- or comma-separated dice string into valid and invalid lists. */
-function parseDiceList(input) {
-  const parts = input.split(/[\s,]+/).map(s => s.trim().toLowerCase()).filter(Boolean);
-  const valid   = [];
-  const invalid = [];
-  for (const p of parts) {
-    if (VALID_DICE.includes(p)) valid.push(p);
-    else invalid.push(p);
-  }
-  return { valid, invalid };
-}
-
-// ---------------------------------------------------------------------------
 // Embed builder
 // ---------------------------------------------------------------------------
 
 function buildSheetEmbed(data) {
   const embed = new EmbedBuilder()
-    .setTitle(`📜 ${data.name}`)
+    .setTitle(`📋 ${data.name}`)
     .setColor(0x5865F2)
     .setFooter({ text: `Player: ${data.ownerTag}` })
     .setTimestamp(new Date(data.updatedAt));
@@ -564,7 +548,7 @@ function buildSheetEmbed(data) {
             const dice = d.length > 0
               ? d.map(die => `${DIE_EMOJI[die] ?? ''}${die}`).join(' ')
               : '*empty*';
-            return `**${t}** 🟡 [${dice}]`;
+            return `**${t}** 💾 [${dice}]`;
           }
           return `**${t}** ${DIE_EMOJI[d] ?? ''}${d}`;
         })
