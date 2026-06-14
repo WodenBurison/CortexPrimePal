@@ -26,7 +26,7 @@ Next, define the trait sets your game uses with `/config add-traitset`. Cortex P
 
 The `traits` field is optional. Leave it blank and players can name their own traits freely. Provide trait names and they'll show up as autocomplete suggestions when players fill in their sheets.
 
-Both `/setup` and `/config` require the Manage Server permission.
+`/setup` requires Manage Server permission and only needs to be run once by the server owner.
 
 ---
 
@@ -109,7 +109,7 @@ You can roll a free pool without a sheet. Put dice directly in the `traits` fiel
 
 **Extra dice**
 
-The `extra` field adds dice that don't come from any trait — good for assets, push dice, or stunts.
+The `extra` field adds dice that don't come from any trait — good for assets or any die the GM awards you mid-scene.
 
 ```
 /roll character:Frank traits:Mental, Duty extra:d6
@@ -193,7 +193,7 @@ Players each have their own plot point balance. The GM has a separate pool.
 /pp all                         — show everyone's PP balances
 ```
 
-**GM commands** (requires Manage Server permission):
+**GM commands:**
 
 ```
 /pp gm-view
@@ -206,7 +206,7 @@ Players each have their own plot point balance. The GM has a separate pool.
 
 ## Config reference
 
-All config commands require Manage Server permission.
+Config commands can be run by anyone in the campaign.
 
 ```
 /config show

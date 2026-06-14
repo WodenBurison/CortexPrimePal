@@ -13,7 +13,6 @@
 
 const {
   SlashCommandBuilder,
-  PermissionFlagsBits,
   EmbedBuilder,
   MessageFlags
 } = require('discord.js');
@@ -23,7 +22,6 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('config')
     .setDescription('Configure trait sets for this campaign')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 
     .addSubcommand(sub => sub
       .setName('show')

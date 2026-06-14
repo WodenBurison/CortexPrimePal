@@ -271,13 +271,6 @@ async function handleGmView(interaction) {
 }
 
 async function handleGmAdd(interaction) {
-  if (!interaction.memberPermissions?.has('ManageGuild')) {
-    return interaction.reply({
-      content: 'Only GMs (Manage Guild permission) can add to the GM pool.',
-      flags: MessageFlags.Ephemeral
-    });
-  }
-
   await interaction.deferReply();
 
   const amount     = interaction.options.getInteger('amount') ?? 1;
@@ -290,13 +283,6 @@ async function handleGmAdd(interaction) {
 }
 
 async function handleGmSpend(interaction) {
-  if (!interaction.memberPermissions?.has('ManageGuild')) {
-    return interaction.reply({
-      content: 'Only GMs (Manage Guild permission) can spend from the GM pool.',
-      flags: MessageFlags.Ephemeral
-    });
-  }
-
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const amount     = interaction.options.getInteger('amount') ?? 1;
@@ -314,13 +300,6 @@ async function handleGmSpend(interaction) {
 }
 
 async function handleSet(interaction) {
-  if (!interaction.memberPermissions?.has('ManageGuild')) {
-    return interaction.reply({
-      content: 'Only GMs (Manage Guild permission) can set PP directly.',
-      flags: MessageFlags.Ephemeral
-    });
-  }
-
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const target     = interaction.options.getUser('player');
