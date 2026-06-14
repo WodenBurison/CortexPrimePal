@@ -33,7 +33,7 @@ const {
   getAllPP
 } = require('../utils/storage');
 
-const PP_EMOJI = '<:plotpoint:1515342610531619006>';
+const PP_EMOJI = '<:plotpoint:1515796693440794734>';
 const pp = (n) => `${n} ${PP_EMOJI}`;  // e.g. 3 <:plotpoint:...>
 
 module.exports = {

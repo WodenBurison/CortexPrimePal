@@ -61,7 +61,7 @@ module.exports = {
 
     .addSubcommand(sub => sub
       .setName('set')
-      .setDescription('Set a trait value on your character sheet')
+      .setDescription('Set a static trait on your character sheet')
       .addStringOption(opt => opt
         .setName('character')
         .setDescription('Your character name')
@@ -85,7 +85,7 @@ module.exports = {
 
     .addSubcommand(sub => sub
       .setName('remove-trait')
-      .setDescription('Remove a trait from your character sheet')
+      .setDescription('Remove a static trait from your character sheet')
       .addStringOption(opt => opt
         .setName('character')
         .setDescription('Your character name')
@@ -423,7 +423,7 @@ async function handlePoolAdd(interaction) {
     current.sort((a, b) => parseInt(b.slice(1)) - parseInt(a.slice(1)));
   } else {
     return interaction.editReply(
-      `**${traitName}** is a single-die trait. Use \`/sheet set\` to change its rating, or \`/sheet remove-trait\` first to convert it to a pool.`
+      `**${traitName}** is a static trait. Use \`/sheet set\` to change its rating, or \`/sheet remove-trait\` first to convert it to a pool trait.`
     );
   }
 
@@ -452,7 +452,7 @@ async function handlePoolRemove(interaction) {
   const pool = sheet.data.traitSets[traitSetName]?.[traitName];
 
   if (!Array.isArray(pool)) {
-    return interaction.editReply(`**${traitName}** is not a pool trait. Use \`/sheet remove-trait\` for single-die traits.`);
+    return interaction.editReply(`**${traitName}** is not a pool trait. Use \`/sheet remove-trait\` for static traits.`);
   }
 
   const idx = pool.indexOf(die);

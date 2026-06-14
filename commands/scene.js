@@ -37,7 +37,7 @@ module.exports = {
 
     .addSubcommand(sub => sub
       .setName('set')
-      .setDescription('Add or update a single-die scene trait')
+      .setDescription('Add or update a static scene trait')
       .addStringOption(opt => opt
         .setName('trait')
         .setDescription('Scene trait name (e.g. "On Fire", "Panicked Crowd")')
@@ -50,7 +50,7 @@ module.exports = {
 
     .addSubcommand(sub => sub
       .setName('remove')
-      .setDescription('Remove a scene trait (single-die or pool)')
+      .setDescription('Remove a scene trait (static or pool trait)')
       .addStringOption(opt => opt
         .setName('trait')
         .setDescription('Scene trait to remove')
@@ -259,7 +259,7 @@ async function handlePoolAdd(interaction) {
     current.sort((a, b) => parseInt(b.slice(1)) - parseInt(a.slice(1)));
   } else {
     return interaction.editReply(
-      `**${traitName}** is a single-die trait. Use \`/scene set\` to change it, or \`/scene remove\` first.`
+      `**${traitName}** is a static trait. Use \`/scene set\` to change it, or \`/scene remove\` first.`
     );
   }
 
@@ -282,7 +282,7 @@ async function handlePoolRemove(interaction) {
   const pool  = scene?.data?.traits?.[traitName];
 
   if (!Array.isArray(pool)) {
-    return interaction.editReply(`**${traitName}** is not a pool trait. Use \`/scene remove\` for single-die traits.`);
+    return interaction.editReply(`**${traitName}** is not a pool trait. Use \`/scene remove\` for static traits.`);
   }
 
   const idx = pool.indexOf(die);

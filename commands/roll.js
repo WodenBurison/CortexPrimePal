@@ -57,7 +57,7 @@ module.exports = {
 
     .addStringOption(opt => opt
       .setName('traits')
-      .setDescription('Traits or dice to roll — e.g. "Strength, d8, On Fire" (required if no character)')
+      .setDescription('Static traits or dice to roll — e.g. "Strength, d8, On Fire" (required if no character)')
       .setRequired(false))
 
     .addStringOption(opt => opt
@@ -68,22 +68,47 @@ module.exports = {
     .addStringOption(opt => opt
       .setName('resources')
       .setDescription('Resource/hero dice pool — pick which dice to roll (pool trait name or "d6,d8")')
-      .setRequired(false)),
+      .setRequired(false)
+      .setAutocomplete(true)),
 
   // -------------------------------------------------------------------------
   // Autocomplete
   // -------------------------------------------------------------------------
   async autocomplete(interaction) {
-    const focused = interaction.options.getFocused(true);
-    if (focused.name !== 'character') return interaction.respond([]);
+    const focused     = interaction.options.getFocused(true);
+    const campaignId  = getCampaignId(interaction.channel);
 
-    const campaignId = getCampaignId(interaction.channel);
-    const sheets = await getAllSheets(interaction.guild, campaignId, interaction.user.id);
-    const filtered = sheets
-      .filter(s => s.data.name.toLowerCase().includes(focused.value.toLowerCase()))
-      .slice(0, 25);
+    if (focused.name === 'character') {
+      const sheets = await getAllSheets(interaction.guild, campaignId, interaction.user.id);
+      const filtered = sheets
+        .filter(s => s.data.name.toLowerCase().includes(focused.value.toLowerCase()))
+        .slice(0, 25);
+      return interaction.respond(filtered.map(s => ({ name: s.data.name, value: s.data.name })));
+    }
 
-    return interaction.respond(filtered.map(s => ({ name: s.data.name, value: s.data.name })));
+    if (focused.name === 'resources') {
+      const charName = interaction.options.getString('character');
+      if (!charName) return interaction.respond([]);
+
+      const sheet = await getSheet(interaction.guild, campaignId, charName, interaction.user.id);
+      if (!sheet) return interaction.respond([]);
+
+      // Collect all pool traits (array values) from the sheet
+      const pools = [];
+      for (const traits of Object.values(sheet.data.traitSets ?? {})) {
+        for (const [name, value] of Object.entries(traits)) {
+          if (Array.isArray(value)) pools.push(name);
+        }
+      }
+
+      const filtered = pools
+        .filter(n => n.toLowerCase().includes(focused.value.toLowerCase()))
+        .slice(0, 25);
+
+      return interaction.respond(filtered.map(n => ({ name: n, value: n })));
+    }
+
+    return interaction.respond([]);
   },
 
   // -------------------------------------------------------------------------
@@ -412,12 +437,15 @@ function buildPreselectMessage(rollId, state, user) {
   }
 
   // One button per pool die
-  const dieButtons = poolEntries.map((e, i) =>
-    new ButtonBuilder()
+  const dieButtons = poolEntries.map((e, i) => {
+    const btn = new ButtonBuilder()
       .setCustomId(`roll_prepool:${rollId}:${i}`)
-      .setLabel(`${e.selected ? '✅ ' : ''}${DIE_EMOJI[e.die] ?? ''}${e.die} (${e.traitName})`)
-      .setStyle(e.selected ? ButtonStyle.Success : ButtonStyle.Secondary)
-  );
+      .setLabel(`${e.selected ? '✅ ' : ''}${e.die} (${e.traitName})`)
+      .setStyle(e.selected ? ButtonStyle.Success : ButtonStyle.Secondary);
+    const emoji = parseDieEmoji(e.die);
+    if (emoji) btn.setEmoji(emoji);
+    return btn;
+  });
 
   const components = [];
   for (let i = 0; i < dieButtons.length; i += 5) {
@@ -615,6 +643,23 @@ function buildFinalEmbed(state, user) {
   }
 
   return embed;
+}
+
+// ---------------------------------------------------------------------------
+// Emoji helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse a custom Discord emoji string "<:name:id>" into the object
+ * Discord.js button .setEmoji() expects: { name, id }
+ * Falls back to null if the string isn't a custom emoji.
+ */
+function parseDieEmoji(die) {
+  const str   = DIE_EMOJI[die];
+  if (!str) return null;
+  const match = str.match(/^<:(\w+):(\d+)>$/);
+  if (!match) return null;
+  return { name: match[1], id: match[2] };
 }
 
 // ---------------------------------------------------------------------------
