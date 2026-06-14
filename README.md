@@ -1,4 +1,4 @@
-# Cortex Prime Pal
+# Cortex Prime Pal test
 
 A Discord bot for running Cortex Prime TTRPG games. Add it to your server: https://discord.com/oauth2/authorize?client_id=1515793107944341644
 
